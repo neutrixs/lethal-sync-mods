@@ -23,6 +23,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// Real impressive, windows
+	defer func() {
+		time.Sleep(time.Second)
+		os.Remove(worker.File.Name())
+	}()
 	defer worker.File.Close()
 
 	prevSize := int64(0)
