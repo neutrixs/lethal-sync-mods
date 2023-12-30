@@ -4,26 +4,15 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
 )
 
 var ErrorNotOkResponse = errors.New("Not OK HTTP Response")
 
 type Worker struct {
-	File *os.File
 	Total int64
 }
 
-func (w *Worker) GetProgress() (int64, error) {
-	stat, err := w.File.Stat()
-	if err != nil {
-		return 0, err
-	}
-
-	return stat.Size(), nil
-}
-
-func (w *Worker) Download(url string) error {
+func (w *Worker) Download(url string, dest ...io.Writer) error {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -38,14 +27,7 @@ func (w *Worker) Download(url string) error {
 	length := res.ContentLength
 	w.Total = length
 
-	file, err := os.CreateTemp("", "lcsync")
-	if err != nil {
-		return err
-	}
-
-	w.File = file
-
-	go io.Copy(w.File, res.Body)
+	go io.Copy(io.MultiWriter(dest...), res.Body)
 
 	return nil
 }
