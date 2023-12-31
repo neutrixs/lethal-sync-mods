@@ -6,8 +6,15 @@ import (
 	"os"
 	"path"
 
+	"github.com/IGLOU-EU/go-wildcard"
 	"github.com/neutrixs/lethal-sync-mods/internal/api"
 )
+
+var filesWL = []string {
+	"winhttp.dll",
+	"doorstop_config.ini",
+	"BepInEx/*",
+}
 
 func main() {
 	wd, err := os.Getwd()
@@ -23,6 +30,18 @@ func main() {
 	checksums := []api.Checksum{}
 
 	for _, file := range files {
+		match := false
+		for _, pattern := range filesWL {
+			if wildcard.Match(pattern, file) {
+				match = true
+				break
+			}
+		}
+
+		if !match {
+			continue
+		}
+
 		fullPath := path.Join(wd, file)
 
 		hashData, err := api.GetChecksum(fullPath, file)
