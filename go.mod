@@ -2,7 +2,11 @@ module github.com/neutrixs/lethal-sync-mods
 
 go 1.21.5
 
-require github.com/schollz/progressbar/v3 v3.14.1
+require (
+	github.com/IGLOU-EU/go-wildcard v1.0.3
+	github.com/IGLOU-EU/go-wildcard/v2 v2.0.2
+	github.com/schollz/progressbar/v3 v3.14.1
+)
 
 require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
