@@ -1,10 +1,7 @@
 package main
 
 import (
-	"crypto/sha256"
 	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"os"
 	"path"
@@ -27,24 +24,13 @@ func main() {
 
 	for _, file := range files {
 		fullPath := path.Join(wd, file)
-		f, err := os.OpenFile(fullPath, os.O_RDONLY, 0755)
+
+		hashData, err := api.GetChecksum(fullPath, file)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		h := sha256.New()
-
-		if _, err := io.Copy(h, f); err != nil {
-			f.Close()
-			log.Fatalln(err)
-		}
-
-		hashData := api.Checksum{
-			Name: file,
-			Sha256: fmt.Sprintf("%x",string(h.Sum(nil))),
-		}
 		checksums = append(checksums, hashData)
-		f.Close()
 	}
 
 	output, err := os.OpenFile(path.Join(wd, "checksums.txt"), os.O_RDONLY | os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0755)
