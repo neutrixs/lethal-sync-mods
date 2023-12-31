@@ -18,7 +18,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	files, err := api.GetFilesWithoutTheDir(wd)
+	files, err := api.GetFilesRelative(wd)
 	if err != nil {
 		log.Fatalln(err)
 	}

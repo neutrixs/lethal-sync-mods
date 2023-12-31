@@ -47,7 +47,8 @@ func GetFiles(dir string) (filePaths []string, err error) {
 	return files, nil
 }
 
-func GetFilesWithoutTheDir(dir string) (filePaths []string, err error) {
+// returns the path of the file relative to dir
+func GetFilesRelative(dir string) (filePaths []string, err error) {
 	files := []string{}
 
 	data, err := GetFiles(dir)
