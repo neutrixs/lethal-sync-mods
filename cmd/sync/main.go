@@ -12,17 +12,13 @@ import (
 
 	"github.com/IGLOU-EU/go-wildcard/v2"
 
+	"github.com/neutrixs/lethal-sync-mods/constants"
 	"github.com/neutrixs/lethal-sync-mods/internal/api"
 	web_worker "github.com/neutrixs/lethal-sync-mods/pkg/worker"
 	"github.com/schollz/progressbar/v3"
 )
 
 const baseURL = "https://lc.neutrixs.my.id"
-var filesWL = []string{
-	"winhttp.dll",
-	"doorstop_config.ini",
-	"BepInEx/*",
-}
 
 func main() {
 	fmt.Println("Verifying checksums...")
@@ -57,9 +53,16 @@ func main() {
 
 	for _, file := range files {
 		match := false
-		for _, pattern := range filesWL {
+		for _, pattern := range constants.ModsWhitelist {
 			if wildcard.Match(pattern, file) {
 				match = true
+				break
+			}
+		}
+
+		for _, pattern := range constants.ModsIgnore {
+			if wildcard.Match(pattern, file) {
+				match = false
 				break
 			}
 		}
