@@ -96,6 +96,7 @@ func CompareChecksums(source []Checksum, target []Checksum) (mis []string, red [
 	return missing, redundant
 }
 
+//name can also be relative path from anywhere, e.g relative/path/from/somewhere.file
 func GetChecksum(filepath string, name string) (Checksum, error) {
 	var cs Checksum
 
