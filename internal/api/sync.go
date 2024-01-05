@@ -18,7 +18,7 @@ import (
 )
 
 // target must be absolute path
-func SyncToClient(source string, target string, whitelist []string, ignorelist []string) error {
+func SyncModsToClient(source string, target string, whitelist []string, ignorelist []string) error {
 	fmt.Println("Verifying checksums...")
 	
 	csURLData, err := url.Parse(source)
