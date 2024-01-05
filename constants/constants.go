@@ -8,7 +8,15 @@ var ModsWhitelist = []string{
     "BepInEx/*",
 }
 
-var ModsIgnore = []string {
+var ModsIgnore = []string{
     "BepInEx/LogOutput.log",
     "BepInEx/cache/*",
+}
+
+var SaveWhitelist = []string{
+    "*",
+}
+
+var SaveIgnore = []string{
+    "checksums.txt",
 }

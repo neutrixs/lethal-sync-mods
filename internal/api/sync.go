@@ -36,6 +36,9 @@ func SyncModsToClient(source string, target string, whitelist []string, ignoreli
     }
 
     rawChecksums, err := io.ReadAll(res.Body)
+    if err != nil {
+        return err
+    }
 
     var sourceChecksums []Checksum
     var targetChecksums []Checksum
@@ -108,7 +111,7 @@ func SyncModsToClient(source string, target string, whitelist []string, ignoreli
         
         bar.ChangeMax64(worker.Total)
 
-        for true {
+        for {
             stat, err := file.Stat()
             if err != nil {
                 file.Close()
