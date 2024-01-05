@@ -8,45 +8,45 @@ import (
 )
 
 func Unzip(file *os.File, dest string) error {
-	fi, err := file.Stat()
-	if err != nil {
-		return err
-	}
+    fi, err := file.Stat()
+    if err != nil {
+        return err
+    }
 
-	reader, err := zip.NewReader(file, fi.Size())
-	if err != nil {
-		return err
-	}
+    reader, err := zip.NewReader(file, fi.Size())
+    if err != nil {
+        return err
+    }
 
-	for _, zf := range reader.File {
-		path := filepath.Join(dest, zf.Name)
+    for _, zf := range reader.File {
+        path := filepath.Join(dest, zf.Name)
 
-		if zf.FileInfo().IsDir() {
-			os.MkdirAll(path, os.ModePerm)
-			continue
-		}
+        if zf.FileInfo().IsDir() {
+            os.MkdirAll(path, os.ModePerm)
+            continue
+        }
 
-		os.MkdirAll(filepath.Dir(path), os.ModePerm)
+        os.MkdirAll(filepath.Dir(path), os.ModePerm)
 
-		zfr, err := zf.Open()
-		if err != nil {
-			return err
-		}
+        zfr, err := zf.Open()
+        if err != nil {
+            return err
+        }
 
-		defer zfr.Close()
+        defer zfr.Close()
 
-		destFile, err := os.OpenFile(path, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, zf.Mode())
-		if err != nil {
-			return err
-		}
+        destFile, err := os.OpenFile(path, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, zf.Mode())
+        if err != nil {
+            return err
+        }
 
-		defer destFile.Close()
+        defer destFile.Close()
 
-		_, err = io.Copy(destFile, zfr)
-		if err != nil {
-			return err
-		}
-	}
+        _, err = io.Copy(destFile, zfr)
+        if err != nil {
+            return err
+        }
+    }
 
-	return nil
+    return nil
 }
