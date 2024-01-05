@@ -18,4 +18,6 @@ const help string =
 "   --base-url <url>: Specifies base URL of the API\n"+
 "                     defaults to https://lc.neutrixs.my.id\n"+
 "\n"+
+"	-u <user>: To be used with -t save option. Specifies which user's save to be downloaded\n"+
+"\n"+
 "   -h: Show this help text"

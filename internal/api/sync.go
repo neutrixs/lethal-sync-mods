@@ -1,77 +1,29 @@
 package api
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"time"
 
-	"github.com/IGLOU-EU/go-wildcard/v2"
 	"github.com/neutrixs/lethal-sync-mods/constants"
 	web_worker "github.com/neutrixs/lethal-sync-mods/pkg/worker"
 	"github.com/schollz/progressbar/v3"
 )
 
 // target must be absolute path
-func SyncModsToClient(source string, target string, whitelist []string, ignorelist []string) error {
+func SyncToClient(source string, target string, whitelist []string, ignorelist []string) error {
     fmt.Println("Verifying checksums...")
-    
-    csURLData, err := url.Parse(source)
-    if err != nil { return err }
-
-    csURLData.Path = path.Join(csURLData.Path, "checksums.txt")
-    csURL := csURLData.String()
-
-    res, err := http.Get(csURL)
-    if err != nil { return err }
-    defer res.Body.Close()
-
-    if res.StatusCode != 200 {
-        return errors.New(res.Status)
-    }
-
-    rawChecksums, err := io.ReadAll(res.Body)
-    if err != nil {
-        return err
-    }
 
     var sourceChecksums []Checksum
     var targetChecksums []Checksum
 
-    err = json.Unmarshal(rawChecksums, &sourceChecksums)
+    sourceChecksums, err := GetRemoteChecksums(source, "checksums.txt")
     if err != nil { return err }
 
-    files, err := GetFilesRelative(target)
+    targetChecksums, err = GetChecksums(target, constants.ModsWhitelist, constants.ModsIgnore)
     if err != nil { return err }
-
-    for _, file := range files {
-        var match bool
-        for _, pattern := range constants.ModsWhitelist {
-            if wildcard.Match(pattern, file) {
-                match = true
-                break
-            }
-        }
-
-        for _, pattern := range constants.ModsIgnore {
-            if wildcard.Match(pattern, file) {
-                match = false
-                break
-            }
-        }
-
-        if !match { continue }
-
-        hash, err := GetChecksum(path.Join(target, file), file)
-        if err != nil { return err }
-
-        targetChecksums = append(targetChecksums, hash)
-    }
 
     missing, redundant := CompareChecksums(sourceChecksums, targetChecksums)
     fmt.Printf("%d missing, %d redundant files\n", len(missing), len(redundant))

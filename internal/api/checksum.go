@@ -2,12 +2,18 @@ package api
 
 import (
 	"crypto/sha256"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"slices"
 	"strings"
+
+	"github.com/IGLOU-EU/go-wildcard/v2"
 )
 
 type Checksum struct {
@@ -116,4 +122,66 @@ func GetChecksum(filepath string, name string) (Checksum, error) {
     cs.Sha256 = fmt.Sprintf("%x",string(h.Sum(nil)))
 
     return cs, nil
+}
+
+func GetChecksums(dir string, whitelist []string, ignore []string) ([]Checksum, error) {
+    var result []Checksum
+
+    files, err := GetFilesRelative(dir)
+    if err != nil { return result, err }
+
+    for _, file := range files {
+        var match bool
+        for _, pattern := range whitelist {
+            if wildcard.Match(pattern, file) {
+                match = true
+                break
+            }
+        }
+
+        for _, pattern := range ignore{
+            if wildcard.Match(pattern, file) {
+                match = false
+                break
+            }
+        }
+
+        if !match { continue }
+
+        hash, err := GetChecksum(path.Join(dir, file), file)
+        if err != nil { return result, err }
+
+        result = append(result, hash)
+    }
+
+    return result, nil
+}
+
+func GetRemoteChecksums(baseURL string, filename string) ([]Checksum, error) {
+    var result []Checksum
+    csURLData, err := url.Parse(baseURL)
+    if err != nil { return result, err }
+
+    csURLData.Path = path.Join(csURLData.Path, "checksums.txt")
+    csURL := csURLData.String()
+
+    res, err := http.Get(csURL)
+    if err != nil { return result, err }
+    defer res.Body.Close()
+
+    if res.StatusCode != 200 {
+        return result, errors.New(res.Status)
+    }
+
+    rawChecksums, err := io.ReadAll(res.Body)
+    if err != nil {
+        return result, err
+    }
+
+    err = json.Unmarshal(rawChecksums, &result)
+    if err != nil {
+        return result, err
+    }
+
+    return result, nil
 }
