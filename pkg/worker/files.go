@@ -3,6 +3,7 @@ package web_worker
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
@@ -21,6 +22,7 @@ func FetchURLs(link string) ([]string, error) {
 
     res, err := http.Get(link)
     if err != nil {
+        log.Println(err)
         return nil, err
     }
 
@@ -28,11 +30,13 @@ func FetchURLs(link string) ([]string, error) {
 
     rawdata, err := io.ReadAll(res.Body)
     if err != nil {
+        log.Println(err)
         return nil, err
     }
 
     err = json.Unmarshal(rawdata, &data)
     if err != nil {
+        log.Println(err)
         return nil, err
     }
 
@@ -40,6 +44,7 @@ func FetchURLs(link string) ([]string, error) {
         if content.Type == "file" {
             parsedURL, err := url.Parse(link)
             if err != nil {
+                log.Println(err)
                 return nil, err
             }
 
@@ -49,6 +54,7 @@ func FetchURLs(link string) ([]string, error) {
         } else {
             parsedURL, err := url.Parse(link)
             if err != nil {
+                log.Println(err)
                 return nil, err
             }
 
@@ -57,6 +63,7 @@ func FetchURLs(link string) ([]string, error) {
 
             children, err := FetchURLs(childURL)
             if err != nil {
+                log.Println(err)
                 return nil, err
             }
 
@@ -70,11 +77,13 @@ func FetchURLs(link string) ([]string, error) {
 func TrimURL(full string, base string) (string, error) {
     fullPath, err := url.Parse(full)
     if err != nil {
+        log.Println(err)
         return "", err
     }
 
     basePath, err := url.Parse(base)
     if err != nil {
+        log.Println(err)
         return "", err
     }
 
@@ -82,4 +91,8 @@ func TrimURL(full string, base string) (string, error) {
     newPath = strings.TrimPrefix(newPath, "/")
 
     return newPath, nil
+}
+
+func init() {
+    log.SetFlags(log.LstdFlags | log.Llongfile)
 }

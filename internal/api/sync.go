@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"path"
@@ -20,10 +21,16 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
     var targetChecksums []Checksum
 
     sourceChecksums, err := GetRemoteChecksums(source, "checksums.txt")
-    if err != nil { return err }
+    if err != nil {
+        log.Println(err)
+        return err
+    }
 
     targetChecksums, err = GetChecksums(target, constants.ModsWhitelist, constants.ModsIgnore)
-    if err != nil { return err }
+    if err != nil {
+        log.Println(err)
+        return err
+    }
 
     missing, redundant := CompareChecksums(sourceChecksums, targetChecksums)
     fmt.Printf("%d missing, %d redundant files\n", len(missing), len(redundant))
@@ -32,7 +39,10 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
         fmt.Println("Removing redundant files...")
         for _, filepath := range redundant {
             err = os.Remove(path.Join(target, filepath))
-            if err != nil { return err }
+            if err != nil {
+                log.Println(err)
+                return err
+            }
         }
     }
 
@@ -41,14 +51,23 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
         absoluteDir, filename := path.Split(absolutePath)
         
         sourceURLData, err := url.Parse(source)
-        if err != nil { return err }
+        if err != nil {
+            log.Println(err)
+            return err
+        }
         sourceURLData.Path = path.Join(sourceURLData.Path, filepath)
 
         err = os.MkdirAll(absoluteDir, 0755)
-        if err != nil { return err }
+        if err != nil {
+            log.Println(err)
+            return err
+        }
 
         file, err := os.OpenFile(absolutePath, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0755)
-        if err != nil { return err }
+        if err != nil {
+            log.Println(err)
+            return err
+        }
 
         formatting := fmt.Sprintf("(%d/%d) Downloading %s", i+1, len(missing), filename)
         bar := progressbar.DefaultBytesSilent(0, formatting)
@@ -58,6 +77,7 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
         if err != nil {
             file.Close()
             bar.Close()
+            log.Println(err)
             return err
         }
         
@@ -68,6 +88,7 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
             if err != nil {
                 file.Close()
                 bar.Close()
+                log.Println(err)
                 return err
             }
 
@@ -87,4 +108,8 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
     }
     fmt.Println()
     return nil
+}
+
+func init() {
+    log.SetFlags(log.LstdFlags | log.Llongfile)
 }

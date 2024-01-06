@@ -17,13 +17,9 @@ const savePath = "AppData/LocalLow/ZeekerssRBLX/Lethal Company"
 
 func main() {
     wd, err := os.Getwd()
-    if err != nil {
-        log.Fatalln(err)
-    }
+    if err != nil { log.Fatalln(err) }
     homedir, err := os.UserHomeDir()
-    if err != nil {
-        log.Fatalln(err)
-    }
+    if err != nil { log.Fatalln(err) }
 
     helpflag := flag.Bool("h", false, "show help")
     dirflag := flag.String("d", "", "set directory")

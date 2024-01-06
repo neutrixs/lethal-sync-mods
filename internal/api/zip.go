@@ -3,6 +3,7 @@ package api
 import (
 	"archive/zip"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -10,11 +11,13 @@ import (
 func Unzip(file *os.File, dest string) error {
     fi, err := file.Stat()
     if err != nil {
+        log.Println(err)
         return err
     }
 
     reader, err := zip.NewReader(file, fi.Size())
     if err != nil {
+        log.Println(err)
         return err
     }
 
@@ -30,6 +33,7 @@ func Unzip(file *os.File, dest string) error {
 
         zfr, err := zf.Open()
         if err != nil {
+            log.Println(err)
             return err
         }
 
@@ -37,6 +41,7 @@ func Unzip(file *os.File, dest string) error {
 
         destFile, err := os.OpenFile(path, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, zf.Mode())
         if err != nil {
+            log.Println(err)
             return err
         }
 
@@ -44,9 +49,14 @@ func Unzip(file *os.File, dest string) error {
 
         _, err = io.Copy(destFile, zfr)
         if err != nil {
+            log.Println(err)
             return err
         }
     }
 
     return nil
+}
+
+func init() {
+    log.SetFlags(log.LstdFlags | log.Llongfile)
 }

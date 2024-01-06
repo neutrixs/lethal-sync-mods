@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,21 +26,25 @@ func GetFiles(dir string) (filePaths []string, err error) {
     files := []string{}
     d, err := os.Open(dir)
     if err != nil {
+        log.Println(err)
         return files, err
     }
 
     stat, err := d.Stat()
     if err != nil {
+        log.Println(err)
         return files, err
     }
 
     // i don't think this will ever be true, but just in case
     if !stat.IsDir() {
+        log.Println(err)
         return files, nil
     }
 
     listFiles, err := d.ReadDir(-1)
     if err != nil {
+        log.Println(err)
         return files, err
     }
 
@@ -48,6 +53,7 @@ func GetFiles(dir string) (filePaths []string, err error) {
             newPath := path.Join(dir, file.Name())
             children, err := GetFiles(newPath)
             if err != nil {
+                log.Println(err)
                 return files, err
             }
 
@@ -66,6 +72,7 @@ func GetFilesRelative(dir string) (filePaths []string, err error) {
 
     data, err := GetFiles(dir)
     if err != nil {
+        log.Println(err)
         return files, err
     }
 
@@ -108,6 +115,7 @@ func GetChecksum(filepath string, name string) (Checksum, error) {
 
     f, err := os.OpenFile(filepath, os.O_RDONLY, 0755)
     if err != nil {
+        log.Println(err)
         return cs, err
     }
     defer f.Close()
@@ -128,7 +136,10 @@ func GetChecksums(dir string, whitelist []string, ignore []string) ([]Checksum, 
     var result []Checksum
 
     files, err := GetFilesRelative(dir)
-    if err != nil { return result, err }
+    if err != nil { 
+        log.Println(err)
+        return result, err
+    }
 
     for _, file := range files {
         var match bool
@@ -149,7 +160,10 @@ func GetChecksums(dir string, whitelist []string, ignore []string) ([]Checksum, 
         if !match { continue }
 
         hash, err := GetChecksum(path.Join(dir, file), file)
-        if err != nil { return result, err }
+        if err != nil {
+            log.Println(err)
+            return result, err
+        }
 
         result = append(result, hash)
     }
@@ -160,13 +174,19 @@ func GetChecksums(dir string, whitelist []string, ignore []string) ([]Checksum, 
 func GetRemoteChecksums(baseURL string, filename string) ([]Checksum, error) {
     var result []Checksum
     csURLData, err := url.Parse(baseURL)
-    if err != nil { return result, err }
+    if err != nil {
+        log.Println(err)
+        return result, err
+    }
 
     csURLData.Path = path.Join(csURLData.Path, "checksums.txt")
     csURL := csURLData.String()
 
     res, err := http.Get(csURL)
-    if err != nil { return result, err }
+    if err != nil {
+        log.Println(err)
+        return result, err
+    }
     defer res.Body.Close()
 
     if res.StatusCode != 200 {
@@ -175,13 +195,19 @@ func GetRemoteChecksums(baseURL string, filename string) ([]Checksum, error) {
 
     rawChecksums, err := io.ReadAll(res.Body)
     if err != nil {
+        log.Println(err)
         return result, err
     }
 
     err = json.Unmarshal(rawChecksums, &result)
     if err != nil {
+        log.Println(err)
         return result, err
     }
 
     return result, nil
+}
+
+func init() {
+    log.SetFlags(log.LstdFlags | log.Llongfile)
 }
