@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/neutrixs/lethal-sync-mods/constants"
@@ -34,6 +35,9 @@ func main() {
         if dir == "" {
             dir = wd
         }
+        
+        dir, err = filepath.Abs(dir)
+        if err != nil { log.Fatalln(err) }
 
         err = Generate(dir, constants.ModsWhitelist, constants.ModsIgnore)
         if err != nil { log.Fatalln(err) }
@@ -44,6 +48,9 @@ func main() {
             dir = path.Join(wd, "saves")
         }
 
+        dir, err = filepath.Abs(dir)
+        if err != nil { log.Fatalln(err) }
+        
         d, err := os.Open(dir)
         if err != nil { log.Fatalln(err) }
 

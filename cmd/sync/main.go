@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/neutrixs/lethal-sync-mods/constants"
 	"github.com/neutrixs/lethal-sync-mods/internal/api"
@@ -47,6 +48,9 @@ func main() {
             dir = wd
         }
 
+        dir, err = filepath.Abs(dir)
+        if err != nil { log.Fatalln(err) }
+
         err = api.SyncToClient(
             *baseurlflag, dir, constants.ModsWhitelist, constants.ModsIgnore,
         )
@@ -64,6 +68,9 @@ func main() {
         if dir == "" {
             dir = path.Join(homedir, savePath)
         }
+        
+        dir, err = filepath.Abs(dir)
+        if err != nil { log.Fatalln(err) }
 
         err = os.MkdirAll(dir, 0755)
         if err != nil { log.Fatalln(err) }
