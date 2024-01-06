@@ -69,6 +69,9 @@ func main() {
             dir = path.Join(homedir, savePath)
         }
 
+        err = os.MkdirAll(dir, 0755)
+        if err != nil { log.Fatalln(err) }
+
         parsed, err := url.Parse(*baseurlflag)
         if err != nil { log.Fatalln(err) }
 
