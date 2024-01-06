@@ -8,7 +8,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/neutrixs/lethal-sync-mods/constants"
 	web_worker "github.com/neutrixs/lethal-sync-mods/pkg/worker"
 	"github.com/schollz/progressbar/v3"
 )
@@ -26,7 +25,7 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
         return err
     }
 
-    targetChecksums, err = GetChecksums(target, constants.ModsWhitelist, constants.ModsIgnore)
+    targetChecksums, err = GetChecksums(target, whitelist, ignorelist)
     if err != nil {
         log.Println(err)
         return err
