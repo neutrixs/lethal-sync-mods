@@ -1,75 +1,80 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path"
+	"strings"
 
-	"github.com/IGLOU-EU/go-wildcard"
 	"github.com/neutrixs/lethal-sync-mods/constants"
-	"github.com/neutrixs/lethal-sync-mods/internal/api"
 )
 
 func main() {
-    wd, err := os.Getwd()
+	wd, err := os.Getwd()
     if err != nil {
         log.Fatalln(err)
     }
 
-    files, err := api.GetFilesRelative(wd)
-    if err != nil {
-        log.Fatalln(err)
-    }
+	helpflag := flag.Bool("h", false, "show help")
+	typeflag := flag.String("t", "mods", "specifies type")
+	dirflag := flag.String("d", "", "specifies directory")
 
-    checksums := []api.Checksum{}
+	flag.Parse()
 
-    for _, file := range files {
-        match := false
-        for _, pattern := range constants.ModsWhitelist {
-            if wildcard.Match(pattern, file) {
-                match = true
-                break
-            }
-        }
+	if *helpflag {
+		fmt.Println(help)
+		os.Exit(0)
+	}
 
-        for _, pattern := range constants.ModsIgnore {
-            if wildcard.Match(pattern, file) {
-                match = false
-                break
-            }
-        }
+	switch strings.ToLower(*typeflag) {
+	case "mods": {
+		dir := *dirflag
+		if dir == "" {
+			dir = wd
+		}
 
-        if !match {
-            continue
-        }
+		err = Generate(dir, constants.ModsWhitelist, constants.ModsIgnore)
+		if err != nil { log.Fatalln(err) }
+	}
+	case "save": {
+		dir := *dirflag
+		if dir == "" {
+			dir = path.Join(wd, "saves")
+		}
 
-        fullPath := path.Join(wd, file)
+		d, err := os.Open(dir)
+		if err != nil { log.Fatalln(err) }
 
-        hashData, err := api.GetChecksum(fullPath, file)
-        if err != nil {
-            log.Fatalln(err)
-        }
+		stat, err := d.Stat()
+		if err != nil { log.Fatalln(err) }
 
-        checksums = append(checksums, hashData)
-    }
+		if !stat.IsDir() {
+			log.Fatalf("%s is NOT a directory!\n", dir)
+		}
 
-    output, err := os.OpenFile(path.Join(wd, "checksums.txt"), os.O_RDONLY | os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0755)
-    if err != nil {
-        log.Fatalln(err)
-    }
+		children, err := d.Readdir(-1)
+		if err != nil { log.Fatalln(err) }
 
-    data, err := json.Marshal(checksums)
-    if err != nil {
-        log.Fatalln(err)
-    }
+		var saves []string
 
-    if _, err = output.Write(data); err != nil {
-        output.Close()
-        log.Fatalln(err)
-    }
+		for _, child := range children {
+			if !child.IsDir() { continue }
+			fullpath := path.Join(dir, child.Name())
 
-    output.Close()
+			saves = append(saves, fullpath)
+		}
+
+		for _, save := range saves {
+			err := Generate(save, constants.SaveWhitelist, constants.SaveIgnore)
+			if err != nil { log.Fatalln(err) }
+		}
+	}
+	default:
+		fmt.Printf("invalid type option!\n%s\n", help)
+		os.Exit(1)
+	}
 }
 
 func init() {
