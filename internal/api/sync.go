@@ -32,7 +32,7 @@ func SyncToClient(source string, target string, whitelist []string, ignorelist [
     }
 
     missing, redundant := CompareChecksums(sourceChecksums, targetChecksums)
-    fmt.Printf("%d missing, %d redundant files\n", len(missing), len(redundant))
+    fmt.Printf("%d missing/mismatched, %d redundant files\n", len(missing), len(redundant))
 
     if len(redundant) > 0 {
         fmt.Println("Removing redundant files...")
