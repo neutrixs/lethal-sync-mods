@@ -73,7 +73,6 @@ func main() {
         if err != nil { log.Fatalln(err) }
 
         parsed.Path = path.Join(parsed.Path, "saves", *userflag)
-        fmt.Println(parsed.String())
 
         err = api.SyncToClient(
             parsed.String(), dir, constants.SaveWhitelist, constants.SaveIgnore,
